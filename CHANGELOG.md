@@ -10,6 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Roadmap items tracked in the README.
 
+## [0.1.4] — 2026-01-08
+
+### Added
+- 🎲 **"Surprise me"** — open a random prompt with one click. Available as a
+  CTA in the hero and as a shuffle button next to the sort dropdown in Browse.
+  Great for discovery when you don't know what you're looking for.
+- ⌨️ **Global keyboard shortcuts**:
+  - `/` focuses the Browse search input (and scrolls to it).
+  - `Esc` clears all Browse filters (search + category).
+  - `⌘/Ctrl + Enter` runs the playground prompt (added in v0.1.1).
+  Shortcuts are suppressed when a dialog is open or when typing in a field.
+
+### Changed
+- **Hero** — added a third "Surprise me" CTA (ghost variant) alongside Browse
+  and Submit.
+- **Browse controls** — added a shuffle icon button next to the sort dropdown.
+- **Docs section** — the keyboard-shortcuts card now documents all three
+  shortcuts (`/`, `Esc`, `⌘/Ctrl + Enter`).
+
 ## [0.1.3] — 2026-01-08
 
 ### Added
@@ -104,7 +123,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No prompt versioning yet (planned for a future release).
 - No i18n yet — contributions welcome.
 
-[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.4
 [0.1.3]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.1

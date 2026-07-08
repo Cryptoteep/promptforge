@@ -37,11 +37,15 @@ const DOCS = [
     title: "Keyboard shortcuts",
     body: (
       <>
-        In the playground, press{" "}
+        Press{" "}
+        <kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold">/</kbd>{" "}
+        to jump to search,{" "}
+        <kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold">Esc</kbd>{" "}
+        to clear filters, and{" "}
         <kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold">⌘/Ctrl</kbd>{" "}
         +{" "}
         <kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold">Enter</kbd>{" "}
-        to run your prompt instantly — no need to reach for the mouse.
+        to run the playground.
       </>
     ),
   },

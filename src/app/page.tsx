@@ -282,6 +282,56 @@ export default function Home() {
     });
   }, []);
 
+  /** Open a random approved prompt — "Surprise me". */
+  const handleSurprise = React.useCallback(() => {
+    if (allPrompts.length === 0) return;
+    const pick = allPrompts[Math.floor(Math.random() * allPrompts.length)];
+    handleView(pick.id);
+  }, [allPrompts, handleView]);
+
+  /** Clear all browse filters (search + category). */
+  const handleClearFilters = React.useCallback(() => {
+    setQuery("");
+    setCategory("");
+  }, []);
+
+  // Global keyboard shortcuts:
+  //   `/` → focus the browse search input
+  //   `Escape` → clear filters (only when no dialog/input is capturing it)
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // `/` to focus search — but not when typing in an input/textarea or a dialog is open.
+      if (e.key === "/" && !selectedPromptId) {
+        const target = e.target as HTMLElement;
+        const tag = target?.tagName;
+        if (tag !== "INPUT" && tag !== "TEXTAREA" && !target?.isContentEditable) {
+          e.preventDefault();
+          const search = document.querySelector<HTMLInputElement>(
+            "#browse input[type=search]",
+          );
+          if (search) {
+            search.focus();
+            const el = document.getElementById("browse");
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+      }
+      // `Escape` to clear filters when not in a dialog and search is focused/empty-ish.
+      if (e.key === "Escape" && !selectedPromptId) {
+        if (query || category) {
+          const target = e.target as HTMLElement;
+          const tag = target?.tagName;
+          // Only clear if focus is in the browse area or body (not inside another component).
+          if (tag === "INPUT" || tag === "BODY" || target?.closest("#browse")) {
+            handleClearFilters();
+          }
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [selectedPromptId, query, category, handleClearFilters]);
+
   const handleSubmitSuccess = React.useCallback(() => {
     setRefreshKey((k) => k + 1);
   }, []);
@@ -291,7 +341,11 @@ export default function Home() {
       <Header />
 
       <main className="flex-1">
-        <Hero promptCount={totalPrompts} categoryCount={CATEGORIES.length} />
+        <Hero
+          promptCount={totalPrompts}
+          categoryCount={CATEGORIES.length}
+          onSurprise={handleSurprise}
+        />
 
         <FeaturedBanner
           prompts={featured}
@@ -319,6 +373,7 @@ export default function Home() {
           recentPrompts={allPrompts.filter((p) => recentIds.includes(p.id))}
           onClearRecent={clearRecent}
           onTagClick={handleTagClick}
+          onSurprise={handleSurprise}
         />
 
         <Collections prompts={allPrompts} onView={handleView} />

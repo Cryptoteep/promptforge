@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, X, ArrowUpDown, Inbox, History, Trash2 } from "lucide-react";
+import { Search, X, ArrowUpDown, Inbox, History, Trash2, Shuffle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,6 +37,8 @@ interface BrowseProps {
   onClearRecent?: () => void;
   /** Click a tag chip → filter the grid by that tag. */
   onTagClick?: (tag: string) => void;
+  /** Open a random prompt — "Surprise me". */
+  onSurprise?: () => void;
 }
 
 interface ApiResponse {
@@ -60,6 +62,7 @@ export function Browse({
   recentPrompts = [],
   onClearRecent,
   onTagClick,
+  onSurprise,
 }: BrowseProps) {
   const [prompts, setPrompts] = React.useState<PromptListItem[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -204,6 +207,19 @@ export function Browse({
                 <SelectItem value="newest">Newest</SelectItem>
               </SelectContent>
             </Select>
+            {onSurprise && (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={onSurprise}
+                aria-label="Surprise me — open a random prompt"
+                title="Surprise me (random prompt)"
+                className="shrink-0"
+              >
+                <Shuffle className="h-4 w-4" aria-hidden />
+              </Button>
+            )}
           </div>
         </div>
 

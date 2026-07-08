@@ -11,15 +11,18 @@ import {
   Sparkles,
   Star,
   Zap,
+  Shuffle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface HeroProps {
   promptCount: number;
   categoryCount: number;
+  /** Open a random prompt — "Surprise me". */
+  onSurprise?: () => void;
 }
 
-export function Hero({ promptCount, categoryCount }: HeroProps) {
+export function Hero({ promptCount, categoryCount, onSurprise }: HeroProps) {
   return (
     <section
       id="top"
@@ -132,6 +135,17 @@ export function Hero({ promptCount, categoryCount }: HeroProps) {
                 Submit a prompt
               </a>
             </Button>
+            {onSurprise && (
+              <Button
+                size="lg"
+                variant="ghost"
+                onClick={onSurprise}
+                className="w-full gap-2 text-foreground/70 hover:text-foreground sm:w-auto"
+              >
+                <Shuffle className="h-4 w-4" aria-hidden />
+                Surprise me
+              </Button>
+            )}
           </motion.div>
 
           {/* Stats row — cardized for clarity */}
