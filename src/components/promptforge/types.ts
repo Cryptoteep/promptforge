@@ -31,6 +31,7 @@ export interface Prompt {
   model: string;
   exampleOutput: string | null;
   upvotes: number;
+  shares: number;
   status: string;
   createdAt: string;
   updatedAt: string;

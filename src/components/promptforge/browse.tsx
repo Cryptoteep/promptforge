@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, X, ArrowUpDown, Inbox, History, Trash2, Shuffle, Bookmark, Download, Loader2 } from "lucide-react";
+import { Search, X, ArrowUpDown, Inbox, History, Trash2, Shuffle, Bookmark, Download, Loader2, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,6 +46,8 @@ interface BrowseProps {
   bookmarkPrompts?: PromptListItem[];
   onToggleBookmark?: (id: string) => void;
   onClearBookmarks?: () => void;
+  /** Import bookmarks from a previously-exported bundle (adds ids by title match). */
+  onImportBookmarks?: (ids: string[]) => void;
 }
 
 interface ApiResponse {
@@ -74,6 +76,7 @@ export function Browse({
   bookmarkPrompts = [],
   onToggleBookmark,
   onClearBookmarks,
+  onImportBookmarks,
 }: BrowseProps) {
   const [prompts, setPrompts] = React.useState<PromptListItem[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -177,13 +180,16 @@ export function Browse({
           />
         )}
 
-        {/* Bookmarks row (localStorage-backed favorites) */}
-        {bookmarkIds.length > 0 && bookmarkPrompts.length > 0 && (
+        {/* Bookmarks row (localStorage-backed favorites) — shows toolbar whenever
+            import is possible, even before any bookmarks exist. */}
+        {(bookmarkIds.length > 0 || onImportBookmarks) && (
           <BookmarksRow
             bookmarkIds={bookmarkIds}
             bookmarkPrompts={bookmarkPrompts}
+            allPrompts={prompts}
             onView={onView}
             onClear={onClearBookmarks}
+            onImportBookmarks={onImportBookmarks}
           />
         )}
 
@@ -471,21 +477,26 @@ function RecentlyViewed({
 function BookmarksRow({
   bookmarkIds,
   bookmarkPrompts,
+  allPrompts,
   onView,
   onClear,
+  onImportBookmarks,
 }: {
   bookmarkIds: string[];
   bookmarkPrompts: PromptListItem[];
+  allPrompts: PromptListItem[];
   onView: (id: string) => void;
   onClear?: () => void;
+  onImportBookmarks?: (ids: string[]) => void;
 }) {
   const [exporting, setExporting] = React.useState(false);
+  const [importing, setImporting] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Preserve bookmark order (newest first).
   const ordered = bookmarkIds
     .map((id) => bookmarkPrompts.find((p) => p.id === id))
     .filter((p): p is PromptListItem => Boolean(p));
-  if (ordered.length === 0) return null;
 
   /** Fetch all bookmarked prompts in full, build a single Markdown bundle, download it. */
   const handleExportBundle = async () => {
@@ -541,6 +552,58 @@ function BookmarksRow({
     }
   };
 
+  /**
+   * Import bookmarks from a previously-exported `promptforge-bookmarks.md`
+   * bundle. Parses `# {title}` headers and matches them against the loaded
+   * prompt list by title (case-insensitive). Only adds matches that aren't
+   * already bookmarked.
+   */
+  const handleImportBundle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const text = await file.text();
+      // Extract Markdown H1 titles: lines starting with "# " (the bundle header
+      // is "# PromptForge — Bookmarked prompts", which we skip; each prompt is
+      // also an H1 "# {title}").
+      const titles = Array.from(text.matchAll(/^# (.+)$/gm))
+        .map((m) => m[1]!.trim())
+        .filter(
+          (t) =>
+            t.length > 0 &&
+            !t.startsWith("PromptForge — Bookmarked prompts"),
+        );
+      const matchedIds: string[] = [];
+      const lower = new Map(
+        allPrompts.map((p) => [p.title.toLowerCase(), p.id]),
+      );
+      for (const t of titles) {
+        const id = lower.get(t.toLowerCase());
+        if (id && !bookmarkIds.includes(id) && !matchedIds.includes(id)) {
+          matchedIds.push(id);
+        }
+      }
+      if (matchedIds.length === 0) {
+        toast.info("No new bookmarks to import", {
+          description:
+            "The file had no matching prompts (or they're already bookmarked).",
+        });
+      } else {
+        onImportBookmarks?.(matchedIds);
+        toast.success(`Imported ${matchedIds.length} bookmark${matchedIds.length === 1 ? "" : "s"}`, {
+          description: "Added to your bookmarks from the bundle.",
+        });
+      }
+    } catch {
+      toast.error("Could not import bookmarks");
+    } finally {
+      setImporting(false);
+      // Reset the input so the same file can be selected again.
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="mb-6 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3 sm:p-4">
       <div className="mb-2.5 flex items-center justify-between gap-2">
@@ -552,22 +615,51 @@ function BookmarksRow({
           </span>
         </h3>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleExportBundle}
-            disabled={exporting}
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/55 transition-colors hover:text-foreground disabled:opacity-50"
-            aria-label="Export all bookmarks as Markdown"
-            title="Export all bookmarks as Markdown"
-          >
-            {exporting ? (
-              <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
-            ) : (
-              <Download className="h-3 w-3" aria-hidden />
-            )}
-            Export
-          </button>
-          {onClear && (
+          {onImportBookmarks && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".md,text/markdown,text/plain"
+                onChange={handleImportBundle}
+                className="sr-only"
+                aria-label="Import bookmarks from a Markdown file"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={importing}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/55 transition-colors hover:text-foreground disabled:opacity-50"
+                aria-label="Import bookmarks from a Markdown file"
+                title="Import bookmarks from a Markdown file"
+              >
+                {importing ? (
+                  <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+                ) : (
+                  <Upload className="h-3 w-3" aria-hidden />
+                )}
+                Import
+              </button>
+            </>
+          )}
+          {ordered.length > 0 && (
+            <button
+              type="button"
+              onClick={handleExportBundle}
+              disabled={exporting}
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/55 transition-colors hover:text-foreground disabled:opacity-50"
+              aria-label="Export all bookmarks as Markdown"
+              title="Export all bookmarks as Markdown"
+            >
+              {exporting ? (
+                <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+              ) : (
+                <Download className="h-3 w-3" aria-hidden />
+              )}
+              Export
+            </button>
+          )}
+          {onClear && ordered.length > 0 && (
             <button
               type="button"
               onClick={onClear}
@@ -580,33 +672,35 @@ function BookmarksRow({
           )}
         </div>
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-1 pf-scroll">
-        {ordered.map((p) => {
-          const meta = categoryMeta(p.category);
-          const Icon = meta.icon;
-          return (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => onView(p.id)}
-              className="group flex shrink-0 items-center gap-2 rounded-lg border border-amber-500/30 bg-background px-3 py-2 text-left transition-all hover:border-primary/30 hover:shadow-sm"
-              title={p.title}
-            >
-              <span
-                className={cn(
-                  "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-[10px]",
-                  meta.badge,
-                )}
+      {ordered.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 pf-scroll">
+          {ordered.map((p) => {
+            const meta = categoryMeta(p.category);
+            const Icon = meta.icon;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => onView(p.id)}
+                className="group flex shrink-0 items-center gap-2 rounded-lg border border-amber-500/30 bg-background px-3 py-2 text-left transition-all hover:border-primary/30 hover:shadow-sm"
+                title={p.title}
               >
-                <Icon className="h-3 w-3" aria-hidden />
-              </span>
-              <span className="max-w-[140px] truncate text-xs font-medium group-hover:text-primary">
-                {p.title}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+                <span
+                  className={cn(
+                    "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-[10px]",
+                    meta.badge,
+                  )}
+                >
+                  <Icon className="h-3 w-3" aria-hidden />
+                </span>
+                <span className="max-w-[140px] truncate text-xs font-medium group-hover:text-primary">
+                  {p.title}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

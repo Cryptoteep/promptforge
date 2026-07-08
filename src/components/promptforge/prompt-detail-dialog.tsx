@@ -139,6 +139,18 @@ export function PromptDetailDialog({
         description: "Paste it anywhere to link directly to this prompt.",
       });
       setTimeout(() => setLinkCopied(false), 1800);
+      // Fire-and-forget: increment the privacy-friendly share counter.
+      // We optimistically bump the local count so the UI updates instantly.
+      setPrompt((prev) =>
+        prev ? { ...prev, shares: (prev.shares ?? 0) + 1 } : prev,
+      );
+      fetch("/api/shares", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ promptId: prompt.id }),
+      }).catch(() => {
+        /* non-fatal — share count is best-effort */
+      });
     } catch {
       toast.error("Could not copy link");
     }
@@ -240,6 +252,12 @@ export function PromptDetailDialog({
                     <ArrowUp className="h-3.5 w-3.5" aria-hidden />
                     {prompt.upvotes} {prompt.upvotes === 1 ? "upvote" : "upvotes"}
                   </span>
+                  {typeof prompt.shares === "number" && prompt.shares > 0 && (
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                      <Share2 className="h-3.5 w-3.5" aria-hidden />
+                      {prompt.shares} {prompt.shares === 1 ? "share" : "shares"}
+                    </span>
+                  )}
                 </div>
 
                 {/* Prompt content */}

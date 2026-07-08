@@ -137,6 +137,20 @@ export default function Home() {
     });
   }, []);
 
+  /** Add multiple bookmark ids at once (e.g. from an imported bundle). Deduped. */
+  const addBookmarks = React.useCallback((ids: string[]) => {
+    setBookmarkIds((prev) => {
+      const existing = new Set(prev);
+      const next = [...ids.filter((id) => !existing.has(id)), ...prev];
+      try {
+        localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
   const clearBookmarks = React.useCallback(() => {
     setBookmarkIds([]);
     try {
@@ -418,6 +432,7 @@ export default function Home() {
           bookmarkPrompts={allPrompts.filter((p) => bookmarkIds.includes(p.id))}
           onToggleBookmark={toggleBookmark}
           onClearBookmarks={clearBookmarks}
+          onImportBookmarks={addBookmarks}
         />
 
         <Collections prompts={allPrompts} onView={handleView} />

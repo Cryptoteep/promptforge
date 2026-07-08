@@ -10,6 +10,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Roadmap items tracked in the README.
 
+## [0.1.9] — 2026-01-08
+
+### Added
+- 🔗 **Per-prompt share count** — clicking the Share button in the detail dialog
+  now increments a privacy-friendly `shares` counter on the prompt (no identity
+  stored, just an aggregate). The count shows as an amber pill in the dialog's
+  meta row (only when > 0). New `POST /api/shares` endpoint; new `shares` column
+  on the Prompt model.
+- 📥 **Import bookmarks bundle** — the Bookmarks row now has an Import button
+  (Upload icon) that accepts a previously-exported `promptforge-bookmarks.md`
+  file, parses the `# {title}` headers, matches them against the loaded prompt
+  list by title (case-insensitive), and adds the matched prompts to your
+  bookmarks. The bookmarks toolbar now shows even with 0 bookmarks (so you can
+  import into an empty state). Deduped — only adds prompts not already
+  bookmarked.
+
+### Changed
+- **Schema** — added `shares Int @default(0)` to the Prompt model.
+- **Detail dialog** — share count amber pill in the meta row; optimistic count
+  bump on share click.
+- **Bookmarks row** — toolbar (Import + Export + Clear) always visible when
+  import is available; chips only render when there are bookmarks.
+
 ## [0.1.8] — 2026-01-08
 
 ### Added
@@ -190,7 +213,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No prompt versioning yet (planned for a future release).
 - No i18n yet — contributions welcome.
 
-[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.9
 [0.1.8]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.6
