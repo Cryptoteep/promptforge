@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Ask a question
+    url: https://github.com/Cryptoteep/promptforge/discussions
+    about: Ask questions and discuss ideas with the community.
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/Cryptoteep/promptforge/security/advisories/new
+    about: Please report security issues privately via GitHub Security Advisories.
+  - name: 📖 Read the docs
+    url: https://github.com/Cryptoteep/promptforge#readme
+    about: Check the README for setup and usage instructions.

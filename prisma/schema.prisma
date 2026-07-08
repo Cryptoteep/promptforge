@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Prompt {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  content       String // the actual prompt text, may use {{variables}}
+  category      String // e.g. "coding", "writing", "analysis", "creative", "education", "productivity", "business"
+  tags          String // comma-separated tags
+  authorName    String
+  authorGithub  String? // optional github handle
+  model         String   @default("glm-4.6") // suggested model
+  exampleOutput String? // optional example of what the prompt produces
+  upvotes       Int      @default(0)
+  status        String   @default("approved") // "pending" | "approved"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  promptId  String
+  voterHash String // hashed identifier to prevent duplicate votes
+  createdAt DateTime @default(now())
+
+  @@unique([promptId, voterHash])
+}
