@@ -2,12 +2,18 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { ArrowUp, Eye, Copy, Check, Github } from "lucide-react";
+import { ArrowUp, Eye, Copy, Check, Github, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { PromptListItem } from "./types";
-import { categoryMeta, formatDate, parseTags, truncate } from "./lib";
+import { categoryMeta, formatDate, parseTags, truncate, promptToMarkdown, slugify } from "./lib";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -34,6 +40,7 @@ export function PromptCard({
   const tags = parseTags(prompt.tags).slice(0, 4);
   const Icon = meta.icon;
   const [copied, setCopied] = React.useState(false);
+  const [fetchingMd, setFetchingMd] = React.useState(false);
 
   const handleCopyId = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -46,6 +53,56 @@ export function PromptCard({
       setTimeout(() => setCopied(false), 1500);
     } catch {
       toast.error("Could not copy to clipboard");
+    }
+  };
+
+  /** Fetch the full prompt, build Markdown, and copy it to the clipboard. */
+  const handleCopyMarkdown = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFetchingMd(true);
+    try {
+      const res = await fetch(`/api/prompts/${prompt.id}`);
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      const data = (await res.json()) as { prompt?: { content: string; exampleOutput?: string | null; title: string; description: string; category: string; tags: string; authorName: string; authorGithub?: string | null; model: string; upvotes?: number; createdAt?: string } };
+      const full = data.prompt;
+      if (!full) throw new Error("Prompt not found");
+      const md = promptToMarkdown({ ...full, exampleOutput: full.exampleOutput ?? null });
+      await navigator.clipboard.writeText(md);
+      toast.success("Copied as Markdown", {
+        description: `${slugify(full.title)}.md — ready to paste anywhere.`,
+      });
+    } catch {
+      toast.error("Could not copy as Markdown");
+    } finally {
+      setFetchingMd(false);
+    }
+  };
+
+  /** Fetch the full prompt and download it as a Markdown file. */
+  const handleDownloadMarkdown = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFetchingMd(true);
+    try {
+      const res = await fetch(`/api/prompts/${prompt.id}`);
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      const data = (await res.json()) as { prompt?: { content: string; exampleOutput?: string | null; title: string; description: string; category: string; tags: string; authorName: string; authorGithub?: string | null; model: string; upvotes?: number; createdAt?: string } };
+      const full = data.prompt;
+      if (!full) throw new Error("Prompt not found");
+      const md = promptToMarkdown({ ...full, exampleOutput: full.exampleOutput ?? null });
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${slugify(full.title)}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success("Downloaded Markdown", { description: `${slugify(full.title)}.md` });
+    } catch {
+      toast.error("Could not download Markdown");
+    } finally {
+      setFetchingMd(false);
     }
   };
 
@@ -179,20 +236,49 @@ export function PromptCard({
           </Button>
 
           <div className="flex items-center gap-1.5">
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={handleCopyId}
-              aria-label="Copy description"
-              className="h-8 w-8 p-0"
-            >
-              {copied ? (
-                <Check className="h-3.5 w-3.5 text-primary" />
-              ) : (
-                <Copy className="h-3.5 w-3.5" />
-              )}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  aria-label="Copy or download prompt"
+                  className="h-8 w-8 p-0"
+                  disabled={fetchingMd}
+                >
+                  {fetchingMd ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : copied ? (
+                    <Check className="h-3.5 w-3.5 text-primary" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={handleCopyId} className="gap-2">
+                  <Copy className="h-4 w-4 text-foreground/70" />
+                  <div className="flex flex-col">
+                    <span>Copy description</span>
+                    <span className="text-[10px] text-foreground/50">Just the summary</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCopyMarkdown} className="gap-2">
+                  <FileText className="h-4 w-4 text-foreground/70" />
+                  <div className="flex flex-col">
+                    <span>Copy as Markdown</span>
+                    <span className="text-[10px] text-foreground/50">Full prompt + metadata</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadMarkdown} className="gap-2">
+                  <FileText className="h-4 w-4 text-foreground/70" />
+                  <div className="flex flex-col">
+                    <span>Download .md</span>
+                    <span className="text-[10px] text-foreground/50">Save to your device</span>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               type="button"
               size="sm"

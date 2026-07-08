@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Roadmap items tracked in the README.
 
+## [0.1.5] — 2026-01-08
+
+### Added
+- 📋 **Copy as Markdown from the card** — every prompt card's copy button is now
+  a dropdown with three options: **Copy description** (just the summary),
+  **Copy as Markdown** (full prompt + metadata, fetched on click), and
+  **Download .md** (save to your device). No need to open the detail dialog to
+  grab a prompt.
+
+### Changed
+- **Dark-mode contrast polish** — the hero eyebrow badge, subheadline, and
+  trust strip now use higher-contrast text colors (foreground/80→foreground,
+  foreground/75→foreground/85, foreground/45→foreground/60) for better
+  readability in dark mode. Verified via VLM assessment.
+
 ## [0.1.4] — 2026-01-08
 
 ### Added
@@ -123,7 +138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No prompt versioning yet (planned for a future release).
 - No i18n yet — contributions welcome.
 
-[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.4
 [0.1.3]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.2

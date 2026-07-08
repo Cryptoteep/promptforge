@@ -58,7 +58,7 @@ export function Hero({ promptCount, categoryCount, onSurprise }: HeroProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border bg-background/70 px-3.5 py-1.5 text-xs font-medium text-foreground/80 shadow-sm backdrop-blur"
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/80 px-3.5 py-1.5 text-xs font-medium text-foreground shadow-sm backdrop-blur"
           >
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
@@ -101,7 +101,7 @@ export function Hero({ promptCount, categoryCount, onSurprise }: HeroProps) {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut", delay: 0.12 }}
-            className="mx-auto mt-6 max-w-2xl text-pretty text-base text-foreground/75 sm:text-lg"
+            className="mx-auto mt-6 max-w-2xl text-pretty text-base text-foreground/85 sm:text-lg"
           >
             A free, community-curated home for high-quality AI prompts. Browse,
             run them in the built-in playground, and submit your own. No
@@ -202,16 +202,16 @@ export function Hero({ promptCount, categoryCount, onSurprise }: HeroProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.36 }}
-            className="mt-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-foreground/45"
+            className="mt-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-foreground/60"
           >
             <span className="inline-flex items-center gap-1.5">
               <Zap className="h-3 w-3" aria-hidden /> Real model output
             </span>
-            <span aria-hidden className="text-foreground/20">·</span>
+            <span aria-hidden className="text-foreground/30">·</span>
             <span className="inline-flex items-center gap-1.5">
               <ShieldCheck className="h-3 w-3" aria-hidden /> No API keys exposed
             </span>
-            <span aria-hidden className="text-foreground/20">·</span>
+            <span aria-hidden className="text-foreground/30">·</span>
             <span className="inline-flex items-center gap-1.5">
               <Heart className="h-3 w-3" aria-hidden /> Built by volunteers
             </span>
