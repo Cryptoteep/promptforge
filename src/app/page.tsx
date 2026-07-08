@@ -4,6 +4,7 @@ import * as React from "react";
 import { Header } from "@/components/promptforge/header";
 import { Hero } from "@/components/promptforge/hero";
 import { FeaturedBanner } from "@/components/promptforge/featured-banner";
+import { StatsDashboard } from "@/components/promptforge/stats-dashboard";
 import { CategoryOverview } from "@/components/promptforge/category-overview";
 import { Browse } from "@/components/promptforge/browse";
 import { Collections } from "@/components/promptforge/collections";
@@ -388,6 +389,8 @@ export default function Home() {
           prompts={featured}
           onView={handleView}
         />
+
+        <StatsDashboard prompts={allPrompts} />
 
         <CategoryOverview
           totals={totals}

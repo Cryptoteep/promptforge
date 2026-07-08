@@ -10,6 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Roadmap items tracked in the README.
 
+## [0.1.8] — 2026-01-08
+
+### Added
+- 📊 **Stats dashboard** — a new "By the numbers" section showing a live snapshot
+  of the library: total prompts, total upvotes, avg upvotes/prompt, category
+  count, distinct authors, and the largest category. Includes highlight cards
+  (largest category + most-upvoted prompt) and a per-category breakdown bar
+  chart with percentages. Computed from the live prompt list, so it stays
+  accurate as the library grows.
+- 💾 **Playground history now persists** — successful playground runs are now
+  saved to localStorage (key `promptforge:playground-history`, capped at 5),
+  so the "Recent runs" strip survives page refreshes. Previously session-only.
+
+### Changed
+- **Page layout** — StatsDashboard inserted between the featured banner and
+  the category overview.
+- **Playground** — history hydrates from localStorage on mount and persists on
+  every change (after hydration to avoid clobbering).
+
 ## [0.1.7] — 2026-01-08
 
 ### Added
@@ -171,7 +190,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No prompt versioning yet (planned for a future release).
 - No i18n yet — contributions welcome.
 
-[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.5

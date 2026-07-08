@@ -41,7 +41,7 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
   const [result, setResult] = React.useState<TestResult | null>(null);
   const [copied, setCopied] = React.useState(false);
 
-  // ---- Playground history (session-only, newest first, capped at 5) ----
+  // ---- Playground history (localStorage-backed, newest first, capped at 5) ----
   interface HistoryEntry {
     id: string;
     prompt: string;
@@ -49,7 +49,34 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
     output: string;
     at: number;
   }
+  const HISTORY_STORAGE_KEY = "promptforge:playground-history";
+  const HISTORY_MAX = 5;
   const [history, setHistory] = React.useState<HistoryEntry[]>([]);
+  const [hydrated, setHydrated] = React.useState(false);
+
+  // Hydrate history from localStorage on mount.
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw) as HistoryEntry[];
+        if (Array.isArray(arr)) setHistory(arr.slice(0, HISTORY_MAX));
+      }
+    } catch {
+      /* ignore */
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist history to localStorage whenever it changes (after hydration).
+  React.useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+    } catch {
+      /* ignore */
+    }
+  }, [history, hydrated]);
 
   const detectedVars = React.useMemo(() => extractVariables(prompt), [prompt]);
 
@@ -113,7 +140,7 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
                 at: Date.now(),
               },
               ...prev,
-            ].slice(0, 5),
+            ].slice(0, HISTORY_MAX),
           );
         }
       }
