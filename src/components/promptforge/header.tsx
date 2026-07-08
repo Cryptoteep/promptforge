@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Flame, Github, Menu, X, BookOpen, FlaskConical, Upload, LayoutGrid } from "lucide-react";
+import { Flame, Github, Menu, X, BookOpen, FlaskConical, Upload, LayoutGrid, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -24,6 +24,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Browse", href: "#browse", icon: LayoutGrid },
+  { label: "Collections", href: "#collections", icon: Package },
   { label: "Playground", href: "#playground", icon: FlaskConical },
   { label: "Submit", href: "#submit", icon: Upload },
   { label: "Docs", href: "#docs", icon: BookOpen },

@@ -10,6 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Roadmap items tracked in the README.
 
+## [0.1.2] — 2026-01-08
+
+### Added
+- 📦 **Prompt collections** — a new "Collections" section with 4 curated starter
+  packs (Developer starter pack, Writing workshop, Get things done, Founder's
+  toolkit). Click a collection to preview its prompts. Membership is computed
+  from the live prompt list, so counts stay accurate as the library grows.
+- 🍴 **"Fork a prompt"** — every prompt's detail dialog now has a Fork button
+  that pre-fills the submit form with the prompt's content (author fields left
+  blank so the new contributor gets credit). A "Forked from an existing prompt"
+  banner appears in the form with a quick-clear action.
+
+### Changed
+- **Header nav** — added a "Collections" link for discoverability.
+- **Submit form** — accepts a prefill (used by Fork); shows a forked-from
+  banner when pre-filled, with an inline clear button.
+
 ## [0.1.1] — 2026-01-08
 
 ### Added
@@ -70,6 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No prompt versioning yet (planned for a future release).
 - No i18n yet — contributions welcome.
 
-[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.0

@@ -17,6 +17,7 @@ import {
   FileJson,
   FileText,
   Link2,
+  GitFork,
 } from "lucide-react";
 import {
   Dialog,
@@ -57,6 +58,8 @@ interface PromptDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Called when the user clicks "Test in playground". */
   onTestInPlayground: (prompt: Prompt) => void;
+  /** Called when the user clicks "Fork" — remix into the submit form. */
+  onFork?: (prompt: Prompt) => void;
 }
 
 export function PromptDetailDialog({
@@ -65,6 +68,7 @@ export function PromptDetailDialog({
   onUpvote,
   onOpenChange,
   onTestInPlayground,
+  onFork,
 }: PromptDetailDialogProps) {
   const open = promptId !== null;
   const [prompt, setPrompt] = React.useState<Prompt | null>(null);
@@ -148,6 +152,14 @@ export function PromptDetailDialog({
     downloadTextFile(`${slugify(prompt.title)}.json`, json, "application/json");
     toast.success("Downloaded JSON", {
       description: `${slugify(prompt.title)}.json`,
+    });
+  };
+
+  const handleFork = () => {
+    if (!prompt || !onFork) return;
+    onFork(prompt);
+    toast.success("Prompt forked into the submit form", {
+      description: "Edit it to make it your own, then submit.",
     });
   };
 
@@ -396,6 +408,17 @@ export function PromptDetailDialog({
               )}
               <span className="hidden sm:inline">Copy</span>
             </Button>
+            {onFork && (
+              <Button
+                variant="ghost"
+                onClick={handleFork}
+                disabled={!prompt}
+                className="gap-1.5"
+              >
+                <GitFork className="h-4 w-4" aria-hidden />
+                <span className="hidden sm:inline">Fork</span>
+              </Button>
+            )}
             <Button
               onClick={() => prompt && onTestInPlayground(prompt)}
               disabled={!prompt}

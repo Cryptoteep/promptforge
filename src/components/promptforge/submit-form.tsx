@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Upload, Loader2, Github, ExternalLink, CheckCircle2 } from "lucide-react";
+import { Upload, Loader2, Github, ExternalLink, CheckCircle2, GitFork } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +20,10 @@ import { cn } from "@/lib/utils";
 interface SubmitFormProps {
   /** Bumped by parent to reset the form after a successful external action. */
   onSubmitSuccess: () => void;
+  /** When set, the form is pre-filled with these values (e.g. a forked prompt). */
+  prefill?: FormState | null;
+  /** Called once the prefill has been applied, so the parent can clear it. */
+  onPrefillConsumed?: () => void;
 }
 
 interface FormState {
@@ -46,10 +50,22 @@ const EMPTY: FormState = {
   exampleOutput: "",
 };
 
-export function SubmitForm({ onSubmitSuccess }: SubmitFormProps) {
+export function SubmitForm({ onSubmitSuccess, prefill, onPrefillConsumed }: SubmitFormProps) {
   const [form, setForm] = React.useState<FormState>(EMPTY);
   const [errors, setErrors] = React.useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = React.useState(false);
+
+  // Apply a prefill (e.g. from "Fork") when it arrives.
+  React.useEffect(() => {
+    if (prefill) {
+      setForm(prefill);
+      setErrors({});
+      onPrefillConsumed?.();
+      // Scroll the form into view so the user sees the forked content.
+      const el = document.getElementById("submit");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [prefill, onPrefillConsumed]);
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -155,6 +171,32 @@ export function SubmitForm({ onSubmitSuccess }: SubmitFormProps) {
           noValidate
           aria-label="Submit a new prompt"
         >
+          {/* Forked-from banner (shown when a prefill was applied) */}
+          {form.content && form.title && (
+            <div className="flex items-start gap-2.5 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs">
+              <GitFork className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <div className="flex-1">
+                <p className="font-medium text-foreground">
+                  Forked from an existing prompt
+                </p>
+                <p className="mt-0.5 text-foreground/60">
+                  The fields below are pre-filled. Edit them to make the prompt
+                  your own, then submit. Clear the form to start fresh.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setForm(EMPTY);
+                  setErrors({});
+                }}
+                className="shrink-0 rounded-md px-2 py-1 font-medium text-foreground/60 transition-colors hover:bg-background hover:text-foreground"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+
           {/* Title */}
           <Field
             id="title"

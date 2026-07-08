@@ -6,6 +6,7 @@ import { Hero } from "@/components/promptforge/hero";
 import { FeaturedBanner } from "@/components/promptforge/featured-banner";
 import { CategoryOverview } from "@/components/promptforge/category-overview";
 import { Browse } from "@/components/promptforge/browse";
+import { Collections } from "@/components/promptforge/collections";
 import { Playground } from "@/components/promptforge/playground";
 import { DocsSection } from "@/components/promptforge/docs-section";
 import { SubmitForm } from "@/components/promptforge/submit-form";
@@ -28,12 +29,27 @@ export default function Home() {
   const [totals, setTotals] = React.useState<Record<string, number>>({});
   const [totalPrompts, setTotalPrompts] = React.useState(0);
   const [featured, setFeatured] = React.useState<PromptListItem[]>([]);
+  /** Full approved prompt list — feeds Collections + featured banner. */
+  const [allPrompts, setAllPrompts] = React.useState<PromptListItem[]>([]);
 
   // ---- Detail dialog ----
   const [selectedPromptId, setSelectedPromptId] = React.useState<string | null>(null);
 
   // ---- Playground ----
   const [playgroundPrefill, setPlaygroundPrefill] = React.useState<string | null>(null);
+
+  // ---- Submit form (fork prefill) ----
+  const [submitPrefill, setSubmitPrefill] = React.useState<{
+    title: string;
+    description: string;
+    content: string;
+    category: string;
+    tags: string;
+    authorName: string;
+    authorGithub: string;
+    model: string;
+    exampleOutput: string;
+  } | null>(null);
 
   // ---- Votes ----
   const [votedIds, setVotedIds] = React.useState<Set<string>>(new Set());
@@ -114,6 +130,7 @@ export default function Home() {
         }
         setTotals(counts);
         setTotalPrompts(total);
+        setAllPrompts(list);
         // Top 3 by upvotes feed the featured banner.
         setFeatured(
           [...list].sort((a, b) => b.upvotes - a.upvotes).slice(0, 3),
@@ -184,6 +201,23 @@ export default function Home() {
     setPlaygroundPrefill(prompt.content);
   }, []);
 
+  const handleFork = React.useCallback((prompt: Prompt) => {
+    setSelectedPromptId(null);
+    // Pre-fill the submit form with the forked prompt's content. The author
+    // fields are intentionally left blank so the new contributor gets credit.
+    setSubmitPrefill({
+      title: prompt.title,
+      description: prompt.description,
+      content: prompt.content,
+      category: prompt.category,
+      tags: prompt.tags,
+      authorName: "",
+      authorGithub: "",
+      model: prompt.model,
+      exampleOutput: prompt.exampleOutput ?? "",
+    });
+  }, []);
+
   const handleSelectCategory = React.useCallback((c: string) => {
     setCategory(c);
     // Scroll to the browse section so the user sees the filter apply.
@@ -228,6 +262,8 @@ export default function Home() {
           refreshKey={refreshKey}
         />
 
+        <Collections prompts={allPrompts} onView={(id) => setSelectedPromptId(id)} />
+
         <Playground
           prefill={playgroundPrefill}
           onPrefillConsumed={() => setPlaygroundPrefill(null)}
@@ -235,7 +271,11 @@ export default function Home() {
 
         <DocsSection />
 
-        <SubmitForm onSubmitSuccess={handleSubmitSuccess} />
+        <SubmitForm
+          onSubmitSuccess={handleSubmitSuccess}
+          prefill={submitPrefill}
+          onPrefillConsumed={() => setSubmitPrefill(null)}
+        />
       </main>
 
       <Footer />
@@ -249,6 +289,7 @@ export default function Home() {
           if (!open) setSelectedPromptId(null);
         }}
         onTestInPlayground={handleTestInPlayground}
+        onFork={handleFork}
       />
     </div>
   );

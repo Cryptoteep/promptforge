@@ -128,10 +128,10 @@ We're happy to mentor first-time contributors!
 - [x] Export prompts as JSON / Markdown
 - [x] Keyboard shortcuts (`⌘/Ctrl + Enter` to run)
 - [x] Featured prompt banner
+- [x] Prompt collections / bundles
+- [x] "Fork a prompt" to remix & improve
 - [ ] Prompt versioning & edit history
 - [ ] Translations (i18n) — help wanted!
-- [ ] Prompt collections / bundles
-- [ ] "Fork a prompt" to remix & improve
 - [ ] Per-prompt discussion threads
 
 See the [open issues](https://github.com/Cryptoteep/promptforge/issues) for the
