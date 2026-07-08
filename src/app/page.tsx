@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Header } from "@/components/promptforge/header";
 import { Hero } from "@/components/promptforge/hero";
+import { FeaturedBanner } from "@/components/promptforge/featured-banner";
 import { CategoryOverview } from "@/components/promptforge/category-overview";
 import { Browse } from "@/components/promptforge/browse";
 import { Playground } from "@/components/promptforge/playground";
@@ -10,7 +11,7 @@ import { DocsSection } from "@/components/promptforge/docs-section";
 import { SubmitForm } from "@/components/promptforge/submit-form";
 import { Footer } from "@/components/promptforge/footer";
 import { PromptDetailDialog } from "@/components/promptforge/prompt-detail-dialog";
-import type { Prompt, SortOption, VoteResponse } from "@/components/promptforge/types";
+import type { Prompt, PromptListItem, SortOption, VoteResponse } from "@/components/promptforge/types";
 import { CATEGORIES } from "@/components/promptforge/types";
 import { toast } from "sonner";
 
@@ -26,6 +27,7 @@ export default function Home() {
   // ---- Category overview totals (fetched once) ----
   const [totals, setTotals] = React.useState<Record<string, number>>({});
   const [totalPrompts, setTotalPrompts] = React.useState(0);
+  const [featured, setFeatured] = React.useState<PromptListItem[]>([]);
 
   // ---- Detail dialog ----
   const [selectedPromptId, setSelectedPromptId] = React.useState<string | null>(null);
@@ -63,16 +65,21 @@ export default function Home() {
     let cancelled = false;
     fetch("/api/prompts?sort=popular")
       .then((r) => r.json())
-      .then((data: { prompts?: { category: string }[] }) => {
+      .then((data: { prompts?: PromptListItem[] }) => {
         if (cancelled) return;
+        const list = data.prompts ?? [];
         const counts: Record<string, number> = {};
         let total = 0;
-        for (const p of data.prompts ?? []) {
+        for (const p of list) {
           counts[p.category] = (counts[p.category] ?? 0) + 1;
           total += 1;
         }
         setTotals(counts);
         setTotalPrompts(total);
+        // Top 3 by upvotes feed the featured banner.
+        setFeatured(
+          [...list].sort((a, b) => b.upvotes - a.upvotes).slice(0, 3),
+        );
       })
       .catch(() => {
         /* non-fatal */
@@ -158,6 +165,11 @@ export default function Home() {
 
       <main className="flex-1">
         <Hero promptCount={totalPrompts} categoryCount={CATEGORIES.length} />
+
+        <FeaturedBanner
+          prompts={featured}
+          onView={(id) => setSelectedPromptId(id)}
+        />
 
         <CategoryOverview
           totals={totals}

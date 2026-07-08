@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Play, Loader2, AlertCircle, Copy, Check, RotateCcw, FlaskConical, Sparkles } from "lucide-react";
+import { Play, Loader2, AlertCircle, Copy, Check, RotateCcw, FlaskConical, Sparkles, Keyboard, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -65,7 +65,7 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
     });
   }, [detectedVars]);
 
-  const handleRun = async () => {
+  const handleRun = React.useCallback(async () => {
     if (!prompt.trim()) {
       toast.error("Please enter a prompt first");
       return;
@@ -101,7 +101,27 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
     } finally {
       setRunning(false);
     }
-  };
+  }, [prompt, variables, model]);
+
+  // Keyboard shortcut: Cmd/Ctrl+Enter runs the prompt from anywhere in the section.
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        const el = document.getElementById("playground");
+        // Only fire if the playground is in the viewport.
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const inView = rect.top < window.innerHeight && rect.bottom > 0;
+          if (inView) {
+            e.preventDefault();
+            handleRun();
+          }
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleRun]);
 
   const handleCopyOutput = async () => {
     if (!result?.output) return;
@@ -186,16 +206,22 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
 
             {/* Variables */}
             {detectedVars.length > 0 && (
-              <div>
-                <Label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-foreground/60">
-                  Detected variables ({detectedVars.length})
-                </Label>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                <div className="mb-2.5 flex items-center justify-between">
+                  <Label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
+                    <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                    Detected variables ({detectedVars.length})
+                  </Label>
+                  <span className="text-[10px] font-normal text-foreground/50">
+                    fill these to run
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                   {detectedVars.map((v) => (
                     <div key={v}>
                       <Label
                         htmlFor={`var-${v}`}
-                        className="mb-1 block font-mono text-[11px] text-foreground/70"
+                        className="mb-1 block font-mono text-[11px] font-semibold text-foreground/80"
                       >
                         {`{{${v}}}`}
                       </Label>
@@ -208,8 +234,8 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
                             [v]: e.target.value,
                           }))
                         }
-                        placeholder={`value for ${v}`}
-                        className="h-9 text-sm"
+                        placeholder={`e.g. “${v}”`}
+                        className="h-9 bg-background text-sm"
                       />
                     </div>
                   ))}
@@ -221,7 +247,10 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <div className="flex-1">
                 <Label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-foreground/60">
-                  Model
+                  <span className="inline-flex items-center gap-1.5">
+                    <Cpu className="h-3 w-3" aria-hidden />
+                    Model
+                  </span>
                 </Label>
                 <Select value={model} onValueChange={setModel}>
                   <SelectTrigger className="w-full" aria-label="Select model">
@@ -236,19 +265,25 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
                   </SelectContent>
                 </Select>
               </div>
-              <Button
-                onClick={handleRun}
-                disabled={running || !prompt.trim()}
-                className="gap-1.5 sm:w-auto"
-                size="lg"
-              >
-                {running ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Play className="h-4 w-4" />
-                )}
-                {running ? "Running…" : "Run prompt"}
-              </Button>
+              <div className="flex flex-col items-stretch gap-1.5 sm:items-end">
+                <Button
+                  onClick={handleRun}
+                  disabled={running || !prompt.trim()}
+                  className="gap-1.5 shadow-sm sm:w-auto"
+                  size="lg"
+                >
+                  {running ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Play className="h-4 w-4" />
+                  )}
+                  {running ? "Running…" : "Run prompt"}
+                </Button>
+                <span className="hidden items-center gap-1 text-[10px] text-foreground/40 sm:flex">
+                  <Keyboard className="h-3 w-3" aria-hidden />
+                  or press <kbd className="rounded border bg-muted px-1 py-0.5 font-mono text-[9px] font-semibold">⌘/Ctrl + Enter</kbd>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -304,9 +339,11 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
                   </Button>
                 </div>
               ) : result?.output ? (
-                <pre className="pf-prompt-content pf-scroll max-h-[480px] min-h-[280px] overflow-y-auto whitespace-pre-wrap p-4">
-                  <code>{result.output}</code>
-                </pre>
+                <div className="pf-scroll max-h-[480px] min-h-[280px] overflow-y-auto p-4">
+                  <pre className="pf-prompt-content whitespace-pre-wrap text-sm leading-relaxed">
+                    <code>{result.output}</code>
+                  </pre>
+                </div>
               ) : (
                 <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-2 p-6 text-center text-foreground/50">
                   <Sparkles

@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { PromptListItem } from "./types";
 import { categoryMeta, formatDate, parseTags, truncate } from "./lib";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface PromptCardProps {
@@ -33,9 +34,6 @@ export function PromptCard({
 
   const handleCopyId = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Cards don't have the full content (the list endpoint omits it); copying
-    // the description gives the user something useful while signalling that
-    // the full prompt is one click away.
     try {
       await navigator.clipboard.writeText(prompt.description);
       setCopied(true);
@@ -56,7 +54,11 @@ export function PromptCard({
       className="h-full"
     >
       <Card
-        className="group flex h-full cursor-pointer flex-col p-5 transition-all hover:shadow-md hover:-translate-y-0.5 focus-within:shadow-md focus-within:-translate-y-0.5"
+        className={cn(
+          "group relative flex h-full cursor-pointer flex-col overflow-hidden p-5 transition-all duration-200",
+          "hover:-translate-y-1 hover:shadow-lg hover:border-primary/30",
+          "focus-within:-translate-y-1 focus-within:shadow-lg focus-within:border-primary/30",
+        )}
         role="article"
         aria-label={`${prompt.title} — ${meta.label} prompt by ${prompt.authorName}`}
         tabIndex={0}
@@ -68,22 +70,29 @@ export function PromptCard({
           }
         }}
       >
+        {/* Category accent bar (left edge) */}
+        <span
+          aria-hidden
+          className={cn(
+            "absolute inset-y-0 left-0 w-1 bg-gradient-to-b opacity-70 transition-opacity group-hover:opacity-100",
+            meta.bar,
+          )}
+        />
+
         {/* Top row: category badge + model */}
         <div className="mb-3 flex items-center justify-between gap-2">
-          <Badge
-            variant="outline"
-            className={`gap-1.5 ${meta.badge}`}
-          >
+          <Badge variant="outline" className={cn("gap-1.5", meta.badge)}>
             <Icon className="h-3 w-3" aria-hidden />
             {meta.label}
           </Badge>
-          <span className="text-[11px] font-medium uppercase tracking-wide text-foreground/50">
+          <span className="inline-flex items-center gap-1 rounded-full bg-muted/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground/55">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary/60" aria-hidden />
             {prompt.model}
           </span>
         </div>
 
         {/* Title */}
-        <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight">
+        <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight transition-colors group-hover:text-primary">
           {prompt.title}
         </h3>
 
@@ -98,7 +107,7 @@ export function PromptCard({
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground"
+                className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors group-hover:bg-muted/70"
               >
                 #{tag}
               </span>
@@ -139,10 +148,13 @@ export function PromptCard({
             }}
             aria-pressed={hasVoted}
             aria-label={hasVoted ? "Remove upvote" : "Upvote this prompt"}
-            className="gap-1.5"
+            className={cn(
+              "gap-1.5 transition-all",
+              !hasVoted && "hover:border-primary hover:text-primary",
+            )}
           >
             <ArrowUp
-              className={`h-3.5 w-3.5 ${hasVoted ? "fill-current" : ""}`}
+              className={cn("h-3.5 w-3.5", hasVoted && "fill-current")}
               aria-hidden
             />
             {prompt.upvotes}
@@ -171,7 +183,7 @@ export function PromptCard({
                 e.stopPropagation();
                 onView(prompt.id);
               }}
-              className="gap-1.5"
+              className="gap-1.5 group/view"
             >
               <Eye className="h-3.5 w-3.5" aria-hidden />
               View

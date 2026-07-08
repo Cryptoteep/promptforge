@@ -17,6 +17,8 @@ interface CategoryMeta {
   badge: string;
   /** Soft tint used for the category overview card background. */
   tint: string;
+  /** Gradient bar shown on the left edge of a prompt card for quick scanning. */
+  bar: string;
   blurb: string;
 }
 
@@ -28,6 +30,7 @@ export const CATEGORY_META: Record<Category, CategoryMeta> = {
       "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/25",
     tint:
       "bg-emerald-500/10 hover:bg-emerald-500/15 border-emerald-500/20",
+    bar: "from-emerald-500 to-teal-500",
     blurb: "Refactor, review, commit messages, debugging help.",
   },
   writing: {
@@ -37,6 +40,7 @@ export const CATEGORY_META: Record<Category, CategoryMeta> = {
       "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/25",
     tint:
       "bg-amber-500/10 hover:bg-amber-500/15 border-amber-500/20",
+    bar: "from-amber-500 to-yellow-500",
     blurb: "Summaries, blog ideas, drafts, editing.",
   },
   analysis: {
@@ -46,6 +50,7 @@ export const CATEGORY_META: Record<Category, CategoryMeta> = {
       "bg-teal-500/15 text-teal-700 dark:text-teal-300 border-teal-500/25",
     tint:
       "bg-teal-500/10 hover:bg-teal-500/15 border-teal-500/20",
+    bar: "from-teal-500 to-cyan-500",
     blurb: "Data insights, post-mortems, root-cause analysis.",
   },
   creative: {
@@ -55,6 +60,7 @@ export const CATEGORY_META: Record<Category, CategoryMeta> = {
       "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/25",
     tint:
       "bg-rose-500/10 hover:bg-rose-500/15 border-rose-500/20",
+    bar: "from-rose-500 to-pink-500",
     blurb: "Stories, naming, taglines, world-building.",
   },
   education: {
@@ -64,6 +70,7 @@ export const CATEGORY_META: Record<Category, CategoryMeta> = {
       "bg-lime-500/15 text-lime-700 dark:text-lime-300 border-lime-500/25",
     tint:
       "bg-lime-500/10 hover:bg-lime-500/15 border-lime-500/20",
+    bar: "from-lime-500 to-green-500",
     blurb: "Explanations, study plans, tutoring.",
   },
   productivity: {
@@ -73,6 +80,7 @@ export const CATEGORY_META: Record<Category, CategoryMeta> = {
       "bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/25",
     tint:
       "bg-orange-500/10 hover:bg-orange-500/15 border-orange-500/20",
+    bar: "from-orange-500 to-red-500",
     blurb: "Planning, email templates, weekly reviews.",
   },
   business: {
@@ -82,6 +90,7 @@ export const CATEGORY_META: Record<Category, CategoryMeta> = {
       "bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/25",
     tint:
       "bg-cyan-500/10 hover:bg-cyan-500/15 border-cyan-500/20",
+    bar: "from-cyan-500 to-sky-500",
     blurb: "Strategy, canvases, outreach, positioning.",
   },
 };
@@ -94,6 +103,7 @@ export function categoryMeta(category: string): CategoryMeta {
       badge:
         "bg-muted text-muted-foreground border-border",
       tint: "bg-muted/40 hover:bg-muted/60 border-border",
+      bar: "from-muted-foreground/50 to-muted-foreground/50",
       blurb: "",
     }
   );
