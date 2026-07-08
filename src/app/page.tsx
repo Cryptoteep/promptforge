@@ -445,6 +445,8 @@ export default function Home() {
         }}
         onTestInPlayground={handleTestInPlayground}
         onFork={handleFork}
+        isBookmarked={selectedPromptId ? bookmarkIds.includes(selectedPromptId) : false}
+        onToggleBookmark={toggleBookmark}
       />
     </div>
   );

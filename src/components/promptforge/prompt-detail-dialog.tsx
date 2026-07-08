@@ -18,6 +18,7 @@ import {
   FileText,
   Link2,
   GitFork,
+  Bookmark,
 } from "lucide-react";
 import {
   Dialog,
@@ -60,6 +61,10 @@ interface PromptDetailDialogProps {
   onTestInPlayground: (prompt: Prompt) => void;
   /** Called when the user clicks "Fork" — remix into the submit form. */
   onFork?: (prompt: Prompt) => void;
+  /** Whether the open prompt is bookmarked. */
+  isBookmarked?: boolean;
+  /** Toggle the bookmark state for the open prompt. */
+  onToggleBookmark?: (id: string) => void;
 }
 
 export function PromptDetailDialog({
@@ -69,6 +74,8 @@ export function PromptDetailDialog({
   onOpenChange,
   onTestInPlayground,
   onFork,
+  isBookmarked = false,
+  onToggleBookmark,
 }: PromptDetailDialogProps) {
   const open = promptId !== null;
   const [prompt, setPrompt] = React.useState<Prompt | null>(null);
@@ -421,6 +428,25 @@ export function PromptDetailDialog({
               >
                 <GitFork className="h-4 w-4" aria-hidden />
                 <span className="hidden sm:inline">Fork</span>
+              </Button>
+            )}
+            {onToggleBookmark && (
+              <Button
+                variant="ghost"
+                onClick={() => prompt && onToggleBookmark(prompt.id)}
+                disabled={!prompt}
+                aria-pressed={isBookmarked}
+                aria-label={isBookmarked ? "Remove bookmark" : "Bookmark this prompt"}
+                title={isBookmarked ? "Remove bookmark" : "Bookmark this prompt"}
+                className={`gap-1.5 ${isBookmarked ? "text-amber-500 hover:text-amber-600" : ""}`}
+              >
+                <Bookmark
+                  className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`}
+                  aria-hidden
+                />
+                <span className="hidden sm:inline">
+                  {isBookmarked ? "Saved" : "Save"}
+                </span>
               </Button>
             )}
             <Button

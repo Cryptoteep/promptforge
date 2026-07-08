@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, X, ArrowUpDown, Inbox, History, Trash2, Shuffle, Bookmark } from "lucide-react";
+import { Search, X, ArrowUpDown, Inbox, History, Trash2, Shuffle, Bookmark, Download, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,9 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CATEGORIES, type PromptListItem, type SortOption } from "./types";
-import { categoryMeta } from "./lib";
+import { categoryMeta, promptToMarkdown, downloadTextFile } from "./lib";
 import { PromptCard } from "./prompt-card";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface BrowseProps {
   category: string; // "" | Category
@@ -478,11 +479,67 @@ function BookmarksRow({
   onView: (id: string) => void;
   onClear?: () => void;
 }) {
+  const [exporting, setExporting] = React.useState(false);
+
   // Preserve bookmark order (newest first).
   const ordered = bookmarkIds
     .map((id) => bookmarkPrompts.find((p) => p.id === id))
     .filter((p): p is PromptListItem => Boolean(p));
   if (ordered.length === 0) return null;
+
+  /** Fetch all bookmarked prompts in full, build a single Markdown bundle, download it. */
+  const handleExportBundle = async () => {
+    setExporting(true);
+    try {
+      const results = await Promise.all(
+        ordered.map(async (p) => {
+          const res = await fetch(`/api/prompts/${p.id}`);
+          if (!res.ok) return null;
+          const data = (await res.json()) as { prompt?: Record<string, unknown> };
+          return data.prompt ?? null;
+        }),
+      );
+      const full = results.filter((r): r is Record<string, unknown> => Boolean(r));
+      if (full.length === 0) {
+        toast.error("Could not export bookmarks");
+        return;
+      }
+      const sections = full.map((p, i) => {
+        const md = promptToMarkdown({
+          title: String(p.title ?? ""),
+          description: String(p.description ?? ""),
+          content: String(p.content ?? ""),
+          category: String(p.category ?? ""),
+          tags: String(p.tags ?? ""),
+          authorName: String(p.authorName ?? ""),
+          authorGithub: p.authorGithub ? String(p.authorGithub) : null,
+          model: String(p.model ?? ""),
+          exampleOutput: p.exampleOutput ? String(p.exampleOutput) : null,
+          upvotes: typeof p.upvotes === "number" ? p.upvotes : undefined,
+          createdAt: typeof p.createdAt === "string" ? p.createdAt : undefined,
+        });
+        return `<!-- ${i + 1} -->\n${md}`;
+      });
+      const bundle = [
+        `# PromptForge — Bookmarked prompts`,
+        ``,
+        `> ${full.length} prompt${full.length === 1 ? "" : "s"} bookmarked in [PromptForge](https://github.com/Cryptoteep/promptforge).`,
+        `> Exported ${new Date().toLocaleString()}. MIT licensed.`,
+        ``,
+        `---`,
+        ``,
+        sections.join("\n\n---\n\n"),
+      ].join("\n");
+      downloadTextFile("promptforge-bookmarks.md", bundle, "text/markdown");
+      toast.success("Downloaded bookmarks bundle", {
+        description: `promptforge-bookmarks.md — ${full.length} prompt${full.length === 1 ? "" : "s"}`,
+      });
+    } catch {
+      toast.error("Could not export bookmarks");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="mb-6 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3 sm:p-4">
@@ -494,17 +551,34 @@ function BookmarksRow({
             {ordered.length}
           </span>
         </h3>
-        {onClear && (
+        <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={onClear}
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/45 transition-colors hover:text-destructive"
-            aria-label="Clear all bookmarks"
+            onClick={handleExportBundle}
+            disabled={exporting}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/55 transition-colors hover:text-foreground disabled:opacity-50"
+            aria-label="Export all bookmarks as Markdown"
+            title="Export all bookmarks as Markdown"
           >
-            <Trash2 className="h-3 w-3" aria-hidden />
-            Clear
+            {exporting ? (
+              <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+            ) : (
+              <Download className="h-3 w-3" aria-hidden />
+            )}
+            Export
           </button>
-        )}
+          {onClear && (
+            <button
+              type="button"
+              onClick={onClear}
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/45 transition-colors hover:text-destructive"
+              aria-label="Clear all bookmarks"
+            >
+              <Trash2 className="h-3 w-3" aria-hidden />
+              Clear
+            </button>
+          )}
+        </div>
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 pf-scroll">
         {ordered.map((p) => {

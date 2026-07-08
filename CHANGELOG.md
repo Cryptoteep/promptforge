@@ -10,6 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Roadmap items tracked in the README.
 
+## [0.1.7] — 2026-01-08
+
+### Added
+- 🔖 **Bookmark from the detail dialog** — the prompt detail dialog now has a
+  Save/Saved bookmark toggle in its footer (next to Fork). Amber when active,
+  syncs with the card bookmark. No need to find the card to bookmark a prompt
+  you're viewing.
+- 📦 **Export all bookmarks as a Markdown bundle** — the Bookmarks row in Browse
+  now has an "Export" button that fetches all bookmarked prompts in full and
+  downloads them as a single `promptforge-bookmarks.md` file (with a header,
+  count, export timestamp, and each prompt separated by `---`). Loading spinner
+  while fetching.
+
+### Changed
+- **Bookmarks row** — added an Export button (Download icon) alongside Clear.
+- **Detail dialog footer** — added a bookmark toggle (Save/Saved) between Fork
+  and Test in playground.
+
 ## [0.1.6] — 2026-01-08
 
 ### Added
@@ -153,7 +171,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No prompt versioning yet (planned for a future release).
 - No i18n yet — contributions welcome.
 
-[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.4
