@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Roadmap items tracked in the README.
 
+## [0.1.6] — 2026-01-08
+
+### Added
+- 🔖 **Bookmark / favorite prompts** — every prompt card now has a bookmark
+  toggle (amber when active). Bookmarks are localStorage-backed (persist across
+  sessions) and shown in a dedicated "Bookmarks" row at the top of Browse, with
+  a count badge and a Clear button. Distinct from recently-viewed.
+- 📜 **Playground history** — successful playground runs are recorded in a
+  session-only "Recent runs" strip (newest first, capped at 5). Click an entry
+  to restore its prompt, model, and output. Includes a Clear button.
+
+### Changed
+- **Prompt card footer** — added a bookmark toggle button between the upvote
+  and the copy/view actions. Amber fill when bookmarked.
+
 ## [0.1.5] — 2026-01-08
 
 ### Added
@@ -138,7 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No prompt versioning yet (planned for a future release).
 - No i18n yet — contributions welcome.
 
-[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.6
 [0.1.5]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.5
 [0.1.4]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.4
 [0.1.3]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.3

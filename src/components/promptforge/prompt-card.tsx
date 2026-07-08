@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { ArrowUp, Eye, Copy, Check, Github, FileText, Loader2 } from "lucide-react";
+import { ArrowUp, Eye, Copy, Check, Github, FileText, Loader2, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,10 @@ interface PromptCardProps {
   index: number;
   /** Click a tag chip → filter the browse grid by that tag. */
   onTagClick?: (tag: string) => void;
+  /** Whether this prompt is bookmarked (favorited). */
+  isBookmarked?: boolean;
+  /** Toggle the bookmark state for this prompt. */
+  onToggleBookmark?: (id: string) => void;
 }
 
 export function PromptCard({
@@ -35,6 +39,8 @@ export function PromptCard({
   onUpvote,
   index,
   onTagClick,
+  isBookmarked = false,
+  onToggleBookmark,
 }: PromptCardProps) {
   const meta = categoryMeta(prompt.category);
   const tags = parseTags(prompt.tags).slice(0, 4);
@@ -236,6 +242,31 @@ export function PromptCard({
           </Button>
 
           <div className="flex items-center gap-1.5">
+            {onToggleBookmark && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleBookmark(prompt.id);
+                }}
+                aria-pressed={isBookmarked}
+                aria-label={isBookmarked ? "Remove bookmark" : "Bookmark this prompt"}
+                title={isBookmarked ? "Remove bookmark" : "Bookmark this prompt"}
+                className={cn(
+                  "h-8 w-8 p-0 transition-colors",
+                  isBookmarked
+                    ? "text-amber-500 hover:text-amber-600"
+                    : "text-foreground/50 hover:text-foreground",
+                )}
+              >
+                <Bookmark
+                  className={cn("h-3.5 w-3.5", isBookmarked && "fill-current")}
+                  aria-hidden
+                />
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

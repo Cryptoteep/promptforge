@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, X, ArrowUpDown, Inbox, History, Trash2, Shuffle } from "lucide-react";
+import { Search, X, ArrowUpDown, Inbox, History, Trash2, Shuffle, Bookmark } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,6 +39,12 @@ interface BrowseProps {
   onTagClick?: (tag: string) => void;
   /** Open a random prompt — "Surprise me". */
   onSurprise?: () => void;
+  /** Bookmarked (favorited) prompt ids. */
+  bookmarkIds?: string[];
+  /** Full prompt list, used to resolve bookmark ids → titles. */
+  bookmarkPrompts?: PromptListItem[];
+  onToggleBookmark?: (id: string) => void;
+  onClearBookmarks?: () => void;
 }
 
 interface ApiResponse {
@@ -63,6 +69,10 @@ export function Browse({
   onClearRecent,
   onTagClick,
   onSurprise,
+  bookmarkIds = [],
+  bookmarkPrompts = [],
+  onToggleBookmark,
+  onClearBookmarks,
 }: BrowseProps) {
   const [prompts, setPrompts] = React.useState<PromptListItem[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -163,6 +173,16 @@ export function Browse({
             recentPrompts={recentPrompts}
             onView={onView}
             onClear={onClearRecent}
+          />
+        )}
+
+        {/* Bookmarks row (localStorage-backed favorites) */}
+        {bookmarkIds.length > 0 && bookmarkPrompts.length > 0 && (
+          <BookmarksRow
+            bookmarkIds={bookmarkIds}
+            bookmarkPrompts={bookmarkPrompts}
+            onView={onView}
+            onClear={onClearBookmarks}
           />
         )}
 
@@ -292,6 +312,8 @@ export function Browse({
                 onView={onView}
                 onUpvote={onUpvote}
                 onTagClick={onTagClick}
+                isBookmarked={bookmarkIds.includes(p.id)}
+                onToggleBookmark={onToggleBookmark}
               />
             ))}
           </div>
@@ -424,6 +446,76 @@ function RecentlyViewed({
               type="button"
               onClick={() => onView(p.id)}
               className="group flex shrink-0 items-center gap-2 rounded-lg border bg-background px-3 py-2 text-left transition-all hover:border-primary/30 hover:shadow-sm"
+              title={p.title}
+            >
+              <span
+                className={cn(
+                  "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-[10px]",
+                  meta.badge,
+                )}
+              >
+                <Icon className="h-3 w-3" aria-hidden />
+              </span>
+              <span className="max-w-[140px] truncate text-xs font-medium group-hover:text-primary">
+                {p.title}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function BookmarksRow({
+  bookmarkIds,
+  bookmarkPrompts,
+  onView,
+  onClear,
+}: {
+  bookmarkIds: string[];
+  bookmarkPrompts: PromptListItem[];
+  onView: (id: string) => void;
+  onClear?: () => void;
+}) {
+  // Preserve bookmark order (newest first).
+  const ordered = bookmarkIds
+    .map((id) => bookmarkPrompts.find((p) => p.id === id))
+    .filter((p): p is PromptListItem => Boolean(p));
+  if (ordered.length === 0) return null;
+
+  return (
+    <div className="mb-6 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3 sm:p-4">
+      <div className="mb-2.5 flex items-center justify-between gap-2">
+        <h3 className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+          <Bookmark className="h-3.5 w-3.5 fill-current" aria-hidden />
+          Bookmarks
+          <span className="ml-1 rounded-full bg-amber-500/20 px-1.5 text-[10px] tabular-nums text-amber-700 dark:text-amber-300">
+            {ordered.length}
+          </span>
+        </h3>
+        {onClear && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/45 transition-colors hover:text-destructive"
+            aria-label="Clear all bookmarks"
+          >
+            <Trash2 className="h-3 w-3" aria-hidden />
+            Clear
+          </button>
+        )}
+      </div>
+      <div className="flex gap-2 overflow-x-auto pb-1 pf-scroll">
+        {ordered.map((p) => {
+          const meta = categoryMeta(p.category);
+          const Icon = meta.icon;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => onView(p.id)}
+              className="group flex shrink-0 items-center gap-2 rounded-lg border border-amber-500/30 bg-background px-3 py-2 text-left transition-all hover:border-primary/30 hover:shadow-sm"
               title={p.title}
             >
               <span

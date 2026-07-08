@@ -140,7 +140,7 @@ export function Footer() {
 
         {/* Bottom strip */}
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t pt-6 text-xs text-foreground/50 sm:flex-row">
-          <p>Built with Next.js · MIT Licensed · v0.1.5</p>
+          <p>Built with Next.js · MIT Licensed · v0.1.6</p>
           <div className="flex items-center gap-4">
             <p className="inline-flex items-center gap-1.5">
               Made by the open-source community with

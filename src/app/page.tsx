@@ -18,6 +18,7 @@ import { toast } from "sonner";
 
 const VOTED_STORAGE_KEY = "promptforge:voted";
 const RECENT_STORAGE_KEY = "promptforge:recent";
+const BOOKMARKS_STORAGE_KEY = "promptforge:bookmarks";
 const RECENT_MAX = 8;
 
 export default function Home() {
@@ -60,7 +61,10 @@ export default function Home() {
   // ---- Recently viewed (localStorage-backed, newest first) ----
   const [recentIds, setRecentIds] = React.useState<string[]>([]);
 
-  // Hydrate voted set + recent list from localStorage.
+  // ---- Bookmarks (localStorage-backed favorites) ----
+  const [bookmarkIds, setBookmarkIds] = React.useState<string[]>([]);
+
+  // Hydrate voted set + recent list + bookmarks from localStorage.
   React.useEffect(() => {
     try {
       const raw = localStorage.getItem(VOTED_STORAGE_KEY);
@@ -76,6 +80,15 @@ export default function Home() {
       if (rawRecent) {
         const arr = JSON.parse(rawRecent) as string[];
         if (Array.isArray(arr)) setRecentIds(arr);
+      }
+    } catch {
+      /* ignore */
+    }
+    try {
+      const rawBm = localStorage.getItem(BOOKMARKS_STORAGE_KEY);
+      if (rawBm) {
+        const arr = JSON.parse(rawBm) as string[];
+        if (Array.isArray(arr)) setBookmarkIds(arr);
       }
     } catch {
       /* ignore */
@@ -106,6 +119,30 @@ export default function Home() {
 
   const clearRecent = React.useCallback(() => {
     persistRecent([]);
+  }, []);
+
+  /** Toggle a prompt's bookmark (favorites). Persists to localStorage. */
+  const toggleBookmark = React.useCallback((id: string) => {
+    setBookmarkIds((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [id, ...prev];
+      try {
+        localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
+  const clearBookmarks = React.useCallback(() => {
+    setBookmarkIds([]);
+    try {
+      localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify([]));
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   // ---- Deep-linking: ?p=<id> opens the detail dialog on load ----
@@ -374,6 +411,10 @@ export default function Home() {
           onClearRecent={clearRecent}
           onTagClick={handleTagClick}
           onSurprise={handleSurprise}
+          bookmarkIds={bookmarkIds}
+          bookmarkPrompts={allPrompts.filter((p) => bookmarkIds.includes(p.id))}
+          onToggleBookmark={toggleBookmark}
+          onClearBookmarks={clearBookmarks}
         />
 
         <Collections prompts={allPrompts} onView={handleView} />

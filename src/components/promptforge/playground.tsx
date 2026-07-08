@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Play, Loader2, AlertCircle, Copy, Check, RotateCcw, FlaskConical, Sparkles, Keyboard, Cpu } from "lucide-react";
+import { Play, Loader2, AlertCircle, Copy, Check, RotateCcw, FlaskConical, Sparkles, Keyboard, Cpu, History, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,16 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
   const [running, setRunning] = React.useState(false);
   const [result, setResult] = React.useState<TestResult | null>(null);
   const [copied, setCopied] = React.useState(false);
+
+  // ---- Playground history (session-only, newest first, capped at 5) ----
+  interface HistoryEntry {
+    id: string;
+    prompt: string;
+    model: string;
+    output: string;
+    at: number;
+  }
+  const [history, setHistory] = React.useState<HistoryEntry[]>([]);
 
   const detectedVars = React.useMemo(() => extractVariables(prompt), [prompt]);
 
@@ -89,7 +99,23 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
           error: data.error ?? `Request failed (${res.status})`,
         });
       } else {
-        setResult({ output: data.output ?? "" });
+        const output = data.output ?? "";
+        setResult({ output });
+        // Record this successful run in the session history.
+        if (output.trim()) {
+          setHistory((prev) =>
+            [
+              {
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                prompt,
+                model,
+                output,
+                at: Date.now(),
+              },
+              ...prev,
+            ].slice(0, 5),
+          );
+        }
       }
     } catch (e: unknown) {
       setResult({
@@ -142,6 +168,22 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
     setCopied(false);
   };
 
+  /** Restore a history entry: load its prompt + model, clear the current result. */
+  const handleRestoreHistory = (entry: HistoryEntry) => {
+    setPrompt(entry.prompt);
+    setModel(entry.model);
+    setVariables({});
+    setResult({ output: entry.output });
+    setCopied(false);
+    toast.success("Restored from history", {
+      description: "The prompt and its output are loaded.",
+    });
+  };
+
+  const handleClearHistory = () => {
+    setHistory([]);
+  };
+
   return (
     <section
       id="playground"
@@ -169,6 +211,55 @@ export function Playground({ prefill, onPrefillConsumed }: PlaygroundProps) {
             are detected automatically — fill them in and hit Run.
           </p>
         </div>
+
+        {/* Session history (newest first, capped at 5) */}
+        {history.length > 0 && (
+          <div className="mb-6 rounded-xl border bg-background/60 p-3 sm:p-4">
+            <div className="mb-2.5 flex items-center justify-between gap-2">
+              <h3 className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-foreground/60">
+                <History className="h-3.5 w-3.5" aria-hidden />
+                Recent runs
+                <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] tabular-nums text-foreground/60">
+                  {history.length}
+                </span>
+              </h3>
+              <button
+                type="button"
+                onClick={handleClearHistory}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/45 transition-colors hover:text-destructive"
+                aria-label="Clear playground history"
+              >
+                <Trash2 className="h-3 w-3" aria-hidden />
+                Clear
+              </button>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1 pf-scroll">
+              {history.map((entry) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  onClick={() => handleRestoreHistory(entry)}
+                  className="group flex shrink-0 flex-col gap-1 rounded-lg border bg-card px-3 py-2 text-left transition-all hover:border-primary/30 hover:shadow-sm"
+                  style={{ maxWidth: 220 }}
+                  title={entry.prompt.slice(0, 100)}
+                >
+                  <span className="line-clamp-1 text-xs font-medium group-hover:text-primary">
+                    {entry.prompt.split("\n")[0].slice(0, 50) || "(empty)"}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-[10px] text-foreground/50">
+                    <Cpu className="h-2.5 w-2.5" aria-hidden />
+                    {entry.model}
+                    <span aria-hidden>·</span>
+                    {new Date(entry.at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Input panel */}
