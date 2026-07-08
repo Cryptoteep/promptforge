@@ -12,6 +12,11 @@ import {
   Tag,
   Loader2,
   ExternalLink,
+  Share2,
+  Download,
+  FileJson,
+  FileText,
+  Link2,
 } from "lucide-react";
 import {
   Dialog,
@@ -22,6 +27,14 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Prompt } from "./types";
 import {
@@ -29,6 +42,10 @@ import {
   formatDate,
   parseTags,
   renderHighlightedPrompt,
+  promptToMarkdown,
+  promptToJson,
+  downloadTextFile,
+  slugify,
 } from "./lib";
 import { toast } from "sonner";
 
@@ -54,6 +71,7 @@ export function PromptDetailDialog({
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [copied, setCopied] = React.useState(false);
+  const [linkCopied, setLinkCopied] = React.useState(false);
 
   React.useEffect(() => {
     if (!promptId) {
@@ -98,6 +116,39 @@ export function PromptDetailDialog({
     } catch {
       toast.error("Could not copy to clipboard");
     }
+  };
+
+  const handleShareLink = async () => {
+    if (!prompt) return;
+    const url = `${window.location.origin}/?p=${prompt.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setLinkCopied(true);
+      toast.success("Shareable link copied", {
+        description: "Paste it anywhere to link directly to this prompt.",
+      });
+      setTimeout(() => setLinkCopied(false), 1800);
+    } catch {
+      toast.error("Could not copy link");
+    }
+  };
+
+  const handleExportMarkdown = () => {
+    if (!prompt) return;
+    const md = promptToMarkdown(prompt);
+    downloadTextFile(`${slugify(prompt.title)}.md`, md, "text/markdown");
+    toast.success("Downloaded Markdown", {
+      description: `${slugify(prompt.title)}.md`,
+    });
+  };
+
+  const handleExportJson = () => {
+    if (!prompt) return;
+    const json = promptToJson(prompt);
+    downloadTextFile(`${slugify(prompt.title)}.json`, json, "application/json");
+    toast.success("Downloaded JSON", {
+      description: `${slugify(prompt.title)}.json`,
+    });
   };
 
   return (
@@ -255,8 +306,8 @@ export function PromptDetailDialog({
           </div>
         </ScrollArea>
 
-        {/* Footer actions */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t px-6 py-4">
+        {/* Footer actions — upvote | share + export + copy + test */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t bg-muted/20 px-6 py-4">
           <Button
             variant={hasVoted ? "default" : "outline"}
             onClick={() => prompt && onUpvote(prompt.id)}
@@ -270,7 +321,68 @@ export function PromptDetailDialog({
             />
             {prompt?.upvotes ?? 0}
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShareLink}
+              disabled={!prompt}
+              className="gap-1.5"
+            >
+              {linkCopied ? (
+                <Check className="h-4 w-4 text-primary" />
+              ) : (
+                <Link2 className="h-4 w-4" />
+              )}
+              <span className="hidden sm:inline">
+                {linkCopied ? "Link copied" : "Share"}
+              </span>
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!prompt}
+                  className="gap-1.5"
+                >
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="flex items-center gap-1.5 text-xs">
+                  <Share2 className="h-3.5 w-3.5" />
+                  Export prompt
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleExportMarkdown} className="gap-2">
+                  <FileText className="h-4 w-4 text-foreground/70" />
+                  <div className="flex flex-col">
+                    <span>Markdown (.md)</span>
+                    <span className="text-[10px] text-foreground/50">
+                      For docs &amp; READMEs
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportJson} className="gap-2">
+                  <FileJson className="h-4 w-4 text-foreground/70" />
+                  <div className="flex flex-col">
+                    <span>JSON (.json)</span>
+                    <span className="text-[10px] text-foreground/50">
+                      Portable &amp; structured
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleCopy} className="gap-2">
+                  <Copy className="h-4 w-4 text-foreground/70" />
+                  <span>Copy prompt text</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button
               variant="ghost"
               onClick={handleCopy}
@@ -282,7 +394,7 @@ export function PromptDetailDialog({
               ) : (
                 <Copy className="h-4 w-4" />
               )}
-              Copy prompt
+              <span className="hidden sm:inline">Copy</span>
             </Button>
             <Button
               onClick={() => prompt && onTestInPlayground(prompt)}

@@ -111,7 +111,7 @@ export function SubmitForm({ onSubmitSuccess }: SubmitFormProps) {
       setErrors({});
       toast.success("Thanks! Your prompt is pending review.", {
         description:
-          "Want it live faster? Open a PR → github.com/promptforge/promptforge",
+          "Want it live faster? Open a PR → github.com/Cryptoteep/promptforge",
         duration: 7000,
       });
       onSubmitSuccess();
@@ -369,7 +369,7 @@ export function SubmitForm({ onSubmitSuccess }: SubmitFormProps) {
             <span>
               Prefer code review? Open a PR against the{" "}
               <a
-                href="https://github.com/promptforge/promptforge/blob/main/CONTRIBUTING.md"
+                href="https://github.com/Cryptoteep/promptforge/blob/main/CONTRIBUTING.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-0.5 font-medium text-primary hover:underline"

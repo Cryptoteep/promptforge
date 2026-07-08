@@ -188,3 +188,111 @@ export function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
   return text.slice(0, max - 1).trimEnd() + "…";
 }
+
+/**
+ * Build a Markdown representation of a prompt, suitable for export/sharing.
+ * Front-matter style metadata + the prompt body + example output.
+ */
+export function promptToMarkdown(p: {
+  title: string;
+  description: string;
+  content: string;
+  category: string;
+  tags: string;
+  authorName: string;
+  authorGithub?: string | null;
+  model: string;
+  exampleOutput?: string | null;
+  upvotes?: number;
+  createdAt?: string;
+}): string {
+  const meta = categoryMeta(p.category);
+  const lines: string[] = [
+    `# ${p.title}`,
+    "",
+    `> ${p.description}`,
+    "",
+    "| Field | Value |",
+    "| --- | --- |",
+    `| Category | ${meta.label} |`,
+    `| Author | ${p.authorName}${p.authorGithub ? ` ([@${p.authorGithub}](https://github.com/${p.authorGithub}))` : ""} |`,
+    `| Suggested model | \`${p.model}\` |`,
+    `| Tags | ${parseTags(p.tags).map((t) => `\`${t}\``).join(", ") || "—"} |`,
+  ];
+  if (typeof p.upvotes === "number") lines.push(`| Upvotes | ${p.upvotes} |`);
+  if (p.createdAt) lines.push(`| Added | ${formatDate(p.createdAt)} |`);
+  lines.push("");
+  lines.push("## Prompt", "");
+  lines.push("```text", p.content, "```", "");
+  if (p.exampleOutput) {
+    lines.push("## Example output", "");
+    lines.push("```text", p.exampleOutput, "```", "");
+  }
+  lines.push("---", "");
+  lines.push(
+    `_Exported from [PromptForge](https://github.com/Cryptoteep/promptforge) — the open-source AI prompt library. MIT licensed._`,
+  );
+  return lines.join("\n");
+}
+
+/**
+ * Build a JSON representation of a prompt for export. Omits internal fields
+ * (id, status, voterHash) so the export is portable and shareable.
+ */
+export function promptToJson(p: {
+  title: string;
+  description: string;
+  content: string;
+  category: string;
+  tags: string;
+  authorName: string;
+  authorGithub?: string | null;
+  model: string;
+  exampleOutput?: string | null;
+}): string {
+  return JSON.stringify(
+    {
+      title: p.title,
+      description: p.description,
+      content: p.content,
+      category: p.category,
+      tags: parseTags(p.tags),
+      author: {
+        name: p.authorName,
+        github: p.authorGithub ?? null,
+      },
+      model: p.model,
+      exampleOutput: p.exampleOutput ?? null,
+      source: "PromptForge",
+      sourceUrl: "https://github.com/Cryptoteep/promptforge",
+      license: "MIT",
+    },
+    null,
+    2,
+  );
+}
+
+/** Trigger a browser download of a text blob with the given filename. */
+export function downloadTextFile(filename: string, content: string, mime = "text/plain") {
+  const blob = new Blob([content], { type: `${mime};charset=utf-8` });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  // Revoke on the next tick so the download has a chance to start.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Slugify a string for use in a filename (e.g. "Refactor code!" -> "refactor-code"). */
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60) || "prompt";
+}

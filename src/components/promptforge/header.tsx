@@ -29,7 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Docs", href: "#docs", icon: BookOpen },
   {
     label: "GitHub",
-    href: "https://github.com/promptforge/promptforge",
+    href: "https://github.com/Cryptoteep/promptforge",
     icon: Github,
     external: true,
   },

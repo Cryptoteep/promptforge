@@ -52,6 +52,44 @@ export default function Home() {
     }
   }, []);
 
+  // ---- Deep-linking: ?p=<id> opens the detail dialog on load ----
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const p = params.get("p");
+    if (p) {
+      setSelectedPromptId(p);
+    }
+  }, []);
+
+  // Sync the URL whenever the detail dialog opens/closes, so links are shareable.
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (selectedPromptId) {
+      url.searchParams.set("p", selectedPromptId);
+    } else {
+      url.searchParams.delete("p");
+    }
+    // Only push if it actually changed, to avoid spamming history.
+    const search = url.searchParams.toString();
+    const current = window.location.search.replace(/^\?/, "");
+    if (search !== current) {
+      window.history.replaceState(null, "", url.toString());
+    }
+  }, [selectedPromptId]);
+
+  // Handle browser back/forward to keep the dialog in sync with the URL.
+  React.useEffect(() => {
+    const onPopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const p = params.get("p");
+      setSelectedPromptId(p);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
   const persistVoted = (next: Set<string>) => {
     try {
       localStorage.setItem(VOTED_STORAGE_KEY, JSON.stringify([...next]));

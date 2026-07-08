@@ -124,10 +124,13 @@ We're happy to mentor first-time contributors!
 - [x] In-browser playground with `{{variable}}` support
 - [x] Community voting (deduped, no login)
 - [x] In-app prompt submission (pending review)
+- [x] Shareable deep-links (`?p=<id>`)
+- [x] Export prompts as JSON / Markdown
+- [x] Keyboard shortcuts (`⌘/Ctrl + Enter` to run)
+- [x] Featured prompt banner
 - [ ] Prompt versioning & edit history
 - [ ] Translations (i18n) — help wanted!
 - [ ] Prompt collections / bundles
-- [ ] Export prompts as JSON / Markdown
 - [ ] "Fork a prompt" to remix & improve
 - [ ] Per-prompt discussion threads
 
