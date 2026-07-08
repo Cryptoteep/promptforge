@@ -18,6 +18,8 @@ interface PromptCardProps {
   onUpvote: (id: string) => void;
   /** 0-based index, used for the staggered entrance animation. */
   index: number;
+  /** Click a tag chip → filter the browse grid by that tag. */
+  onTagClick?: (tag: string) => void;
 }
 
 export function PromptCard({
@@ -26,6 +28,7 @@ export function PromptCard({
   onView,
   onUpvote,
   index,
+  onTagClick,
 }: PromptCardProps) {
   const meta = categoryMeta(prompt.category);
   const tags = parseTags(prompt.tags).slice(0, 4);
@@ -104,14 +107,29 @@ export function PromptCard({
         {/* Tags */}
         {tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors group-hover:bg-muted/70"
-              >
-                #{tag}
-              </span>
-            ))}
+            {tags.map((tag) =>
+              onTagClick ? (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTagClick(tag);
+                  }}
+                  className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary group-hover:bg-muted/70"
+                  aria-label={`Filter by tag ${tag}`}
+                >
+                  #{tag}
+                </button>
+              ) : (
+                <span
+                  key={tag}
+                  className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors group-hover:bg-muted/70"
+                >
+                  #{tag}
+                </span>
+              ),
+            )}
           </div>
         )}
 

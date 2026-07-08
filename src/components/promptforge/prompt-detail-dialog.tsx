@@ -204,9 +204,9 @@ export function PromptDetailDialog({
               </div>
             ) : prompt ? (
               <div className="space-y-5">
-                {/* Meta row */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-foreground/60">
-                  <span className="inline-flex items-center gap-1.5">
+                {/* Meta row — cardized pills for clarity */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border bg-muted/40 px-2.5 py-1.5 text-xs">
                     <span className="font-medium text-foreground/80">
                       {prompt.authorName}
                     </span>
@@ -221,13 +221,17 @@ export function PromptDetailDialog({
                       </a>
                     )}
                   </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5" />
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border bg-muted/40 px-2.5 py-1.5 text-xs text-foreground/65">
+                    <Calendar className="h-3.5 w-3.5" aria-hidden />
                     {formatDate(prompt.createdAt)}
                   </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <Cpu className="h-3.5 w-3.5" />
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border bg-muted/40 px-2.5 py-1.5 text-xs text-foreground/65">
+                    <Cpu className="h-3.5 w-3.5" aria-hidden />
                     {prompt.model}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-2.5 py-1.5 text-xs font-medium text-primary">
+                    <ArrowUp className="h-3.5 w-3.5" aria-hidden />
+                    {prompt.upvotes} {prompt.upvotes === 1 ? "upvote" : "upvotes"}
                   </span>
                 </div>
 

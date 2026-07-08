@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, X, ArrowUpDown, Inbox } from "lucide-react";
+import { Search, X, ArrowUpDown, Inbox, History, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,6 +30,13 @@ interface BrowseProps {
   onUpvote: (id: string) => void;
   /** Bumped by parent to force a refetch (e.g. after submitting a prompt). */
   refreshKey: number;
+  /** Recently-viewed prompt ids, newest first (localStorage-backed). */
+  recentIds?: string[];
+  /** The full prompt list, used to resolve recent ids → titles. */
+  recentPrompts?: PromptListItem[];
+  onClearRecent?: () => void;
+  /** Click a tag chip → filter the grid by that tag. */
+  onTagClick?: (tag: string) => void;
 }
 
 interface ApiResponse {
@@ -49,6 +56,10 @@ export function Browse({
   votedIds,
   onUpvote,
   refreshKey,
+  recentIds = [],
+  recentPrompts = [],
+  onClearRecent,
+  onTagClick,
 }: BrowseProps) {
   const [prompts, setPrompts] = React.useState<PromptListItem[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -141,6 +152,16 @@ export function Browse({
                 }${debouncedQuery ? ` matching “${debouncedQuery}”` : ""}`}
           </p>
         </div>
+
+        {/* Recently viewed row (localStorage-backed) */}
+        {recentIds.length > 0 && recentPrompts.length > 0 && (
+          <RecentlyViewed
+            recentIds={recentIds}
+            recentPrompts={recentPrompts}
+            onView={onView}
+            onClear={onClearRecent}
+          />
+        )}
 
         {/* Controls */}
         <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -254,6 +275,7 @@ export function Browse({
                 hasVoted={votedIds.has(p.id)}
                 onView={onView}
                 onUpvote={onUpvote}
+                onTagClick={onTagClick}
               />
             ))}
           </div>
@@ -335,6 +357,74 @@ function EmptyState({
           <a href="#submit">Submit a prompt</a>
         </Button>
       )}
+    </div>
+  );
+}
+
+function RecentlyViewed({
+  recentIds,
+  recentPrompts,
+  onView,
+  onClear,
+}: {
+  recentIds: string[];
+  recentPrompts: PromptListItem[];
+  onView: (id: string) => void;
+  onClear?: () => void;
+}) {
+  // Order by recency (recentIds is newest-first), drop any ids not in the list.
+  const ordered = recentIds
+    .map((id) => recentPrompts.find((p) => p.id === id))
+    .filter((p): p is PromptListItem => Boolean(p))
+    .slice(0, 8);
+  if (ordered.length === 0) return null;
+
+  return (
+    <div className="mb-6 rounded-xl border bg-muted/30 p-3 sm:p-4">
+      <div className="mb-2.5 flex items-center justify-between gap-2">
+        <h3 className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-foreground/60">
+          <History className="h-3.5 w-3.5" aria-hidden />
+          Recently viewed
+        </h3>
+        {onClear && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-foreground/45 transition-colors hover:text-destructive"
+            aria-label="Clear recently viewed"
+          >
+            <Trash2 className="h-3 w-3" aria-hidden />
+            Clear
+          </button>
+        )}
+      </div>
+      <div className="flex gap-2 overflow-x-auto pb-1 pf-scroll">
+        {ordered.map((p) => {
+          const meta = categoryMeta(p.category);
+          const Icon = meta.icon;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => onView(p.id)}
+              className="group flex shrink-0 items-center gap-2 rounded-lg border bg-background px-3 py-2 text-left transition-all hover:border-primary/30 hover:shadow-sm"
+              title={p.title}
+            >
+              <span
+                className={cn(
+                  "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-[10px]",
+                  meta.badge,
+                )}
+              >
+                <Icon className="h-3 w-3" aria-hidden />
+              </span>
+              <span className="max-w-[140px] truncate text-xs font-medium group-hover:text-primary">
+                {p.title}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

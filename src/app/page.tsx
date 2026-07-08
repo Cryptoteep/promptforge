@@ -17,6 +17,8 @@ import { CATEGORIES } from "@/components/promptforge/types";
 import { toast } from "sonner";
 
 const VOTED_STORAGE_KEY = "promptforge:voted";
+const RECENT_STORAGE_KEY = "promptforge:recent";
+const RECENT_MAX = 8;
 
 export default function Home() {
   // ---- Browse state ----
@@ -55,7 +57,10 @@ export default function Home() {
   const [votedIds, setVotedIds] = React.useState<Set<string>>(new Set());
   const [voting, setVoting] = React.useState<Set<string>>(new Set());
 
-  // Hydrate voted set from localStorage.
+  // ---- Recently viewed (localStorage-backed, newest first) ----
+  const [recentIds, setRecentIds] = React.useState<string[]>([]);
+
+  // Hydrate voted set + recent list from localStorage.
   React.useEffect(() => {
     try {
       const raw = localStorage.getItem(VOTED_STORAGE_KEY);
@@ -66,6 +71,41 @@ export default function Home() {
     } catch {
       /* ignore */
     }
+    try {
+      const rawRecent = localStorage.getItem(RECENT_STORAGE_KEY);
+      if (rawRecent) {
+        const arr = JSON.parse(rawRecent) as string[];
+        if (Array.isArray(arr)) setRecentIds(arr);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const persistRecent = (next: string[]) => {
+    setRecentIds(next);
+    try {
+      localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  };
+
+  /** Record a prompt id as recently viewed (deduped, newest first, capped). */
+  const recordRecent = React.useCallback((id: string) => {
+    setRecentIds((prev) => {
+      const next = [id, ...prev.filter((x) => x !== id)].slice(0, RECENT_MAX);
+      try {
+        localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
+  const clearRecent = React.useCallback(() => {
+    persistRecent([]);
   }, []);
 
   // ---- Deep-linking: ?p=<id> opens the detail dialog on load ----
@@ -227,6 +267,21 @@ export default function Home() {
     });
   }, []);
 
+  /** Open a prompt's detail dialog + record it as recently viewed. */
+  const handleView = React.useCallback((id: string) => {
+    setSelectedPromptId(id);
+    recordRecent(id);
+  }, [recordRecent]);
+
+  /** Click a tag chip → filter the browse grid by that tag (as a search query). */
+  const handleTagClick = React.useCallback((tag: string) => {
+    setQuery(tag);
+    requestAnimationFrame(() => {
+      const el = document.getElementById("browse");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
+
   const handleSubmitSuccess = React.useCallback(() => {
     setRefreshKey((k) => k + 1);
   }, []);
@@ -240,7 +295,7 @@ export default function Home() {
 
         <FeaturedBanner
           prompts={featured}
-          onView={(id) => setSelectedPromptId(id)}
+          onView={handleView}
         />
 
         <CategoryOverview
@@ -256,13 +311,17 @@ export default function Home() {
           setQuery={setQuery}
           sort={sort}
           setSort={setSort}
-          onView={(id) => setSelectedPromptId(id)}
+          onView={handleView}
           votedIds={votedIds}
           onUpvote={handleUpvote}
           refreshKey={refreshKey}
+          recentIds={recentIds}
+          recentPrompts={allPrompts.filter((p) => recentIds.includes(p.id))}
+          onClearRecent={clearRecent}
+          onTagClick={handleTagClick}
         />
 
-        <Collections prompts={allPrompts} onView={(id) => setSelectedPromptId(id)} />
+        <Collections prompts={allPrompts} onView={handleView} />
 
         <Playground
           prefill={playgroundPrefill}

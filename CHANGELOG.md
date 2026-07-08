@@ -10,6 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Roadmap items tracked in the README.
 
+## [0.1.3] — 2026-01-08
+
+### Added
+- 🕘 **Recently viewed row** — prompts you open are remembered (localStorage-backed,
+  newest first, capped at 8) and shown as a horizontal scroller at the top of
+  Browse. Includes a "Clear" button to wipe history. Persists across sessions.
+- 🏷️ **Tag-chip search** — tags on prompt cards are now clickable buttons. Click
+  a tag to instantly filter the browse grid by that tag (sets the search query
+  and scrolls to the results).
+
+### Changed
+- **Category overview** — each category card now has a top gradient accent bar,
+  a hover icon scale, and a mini progress bar showing the relative prompt count
+  per category.
+- **Prompt detail dialog** — the meta row (author, date, model) is now a row of
+  cardized pills for clarity, plus a prominent upvote-count pill.
+
 ## [0.1.2] — 2026-01-08
 
 ### Added
@@ -87,7 +104,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No prompt versioning yet (planned for a future release).
 - No i18n yet — contributions welcome.
 
-[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/Cryptoteep/promptforge/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.3
 [0.1.2]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.2
 [0.1.1]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Cryptoteep/promptforge/releases/tag/v0.1.0

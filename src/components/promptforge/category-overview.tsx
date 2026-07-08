@@ -17,6 +17,8 @@ export function CategoryOverview({
   active,
   onSelect,
 }: CategoryOverviewProps) {
+  const maxCount = Math.max(1, ...CATEGORIES.map((c) => totals[c] ?? 0));
+
   return (
     <section
       id="categories"
@@ -43,6 +45,7 @@ export function CategoryOverview({
             const Icon = meta.icon;
             const count = totals[c] ?? 0;
             const isActive = active === c;
+            const pct = Math.round((count / maxCount) * 100);
             return (
               <motion.button
                 key={c}
@@ -54,15 +57,23 @@ export function CategoryOverview({
                 onClick={() => onSelect(c)}
                 aria-pressed={isActive}
                 className={cn(
-                  "group flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "group relative flex flex-col items-start gap-2 overflow-hidden rounded-xl border p-4 text-left transition-all hover:-translate-y-1 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   meta.tint,
                   isActive && "ring-2 ring-primary",
                 )}
               >
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-background/70 text-foreground shadow-sm">
+                {/* Top gradient accent */}
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute inset-x-0 top-0 h-1 bg-gradient-to-r opacity-70 transition-opacity group-hover:opacity-100",
+                    meta.bar,
+                  )}
+                />
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-background/80 text-foreground shadow-sm transition-transform group-hover:scale-110">
                   <Icon className="h-4 w-4" aria-hidden />
                 </span>
-                <div>
+                <div className="w-full">
                   <div className="flex items-center gap-1 text-sm font-semibold">
                     {meta.label}
                     <ArrowRight
@@ -73,6 +84,13 @@ export function CategoryOverview({
                   <div className="text-xs text-foreground/60">
                     {count} {count === 1 ? "prompt" : "prompts"}
                   </div>
+                </div>
+                {/* Mini progress bar showing relative count */}
+                <div className="h-1 w-full overflow-hidden rounded-full bg-background/60" aria-hidden>
+                  <div
+                    className={cn("h-full rounded-full bg-gradient-to-r transition-all duration-500", meta.bar)}
+                    style={{ width: `${pct}%` }}
+                  />
                 </div>
                 <p className="line-clamp-2 text-[11px] leading-snug text-foreground/55">
                   {meta.blurb}
